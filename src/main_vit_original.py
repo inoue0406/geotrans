@@ -25,6 +25,7 @@ from torchvision.datasets import CIFAR10
 
 # local modules
 from models.model_ViT import img_to_patch, ViT
+from opts import parse_opts
 
 def train_model(**kwargs):
     trainer = L.Trainer(
@@ -66,14 +67,19 @@ def train_model(**kwargs):
 
 if __name__ == '__main__':
 
+    # parse command-line options
+    opt = parse_opts()
+    print("Command-line options:")
+    print(opt)
+    
     plt.set_cmap("cividis")
     matplotlib.rcParams["lines.linewidth"] = 2.0
     sns.reset_orig()
 
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
-    DATASET_PATH = os.environ.get("PATH_DATASETS", "../data/")
+    DATASET_PATH = opt.dataset_path
     # Path to the folder where the pretrained models are saved
-    CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "../run/saved_models/VisionTransformers/")
+    CHECKPOINT_PATH = opt.checkpoint_path
 
     # Setting the seed
     L.seed_everything(42)
@@ -84,33 +90,6 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
-
-    # Github URL where saved models are stored for this tutorial
-    base_url = "https://raw.githubusercontent.com/phlippe/saved_models/main/"
-    # Files to download
-    pretrained_files = [
-        "tutorial15/ViT.ckpt",
-        "tutorial15/tensorboards/ViT/events.out.tfevents.ViT",
-        "tutorial5/tensorboards/ResNet/events.out.tfevents.resnet",
-    ]
-    # Create checkpoint path if it doesn't exist yet
-    os.makedirs(CHECKPOINT_PATH, exist_ok=True)
-
-    # For each file, check whether it already exists. If not, try downloading it.
-    for file_name in pretrained_files:
-        file_path = os.path.join(CHECKPOINT_PATH, file_name.split("/", 1)[1])
-        if "/" in file_name.split("/", 1)[1]:
-            os.makedirs(file_path.rsplit("/", 1)[0], exist_ok=True)
-        if not os.path.isfile(file_path):
-            file_url = base_url + file_name
-            print("Downloading %s..." % file_url)
-            try:
-                urllib.request.urlretrieve(file_url, file_path)
-            except HTTPError as e:
-                print(
-                    "Something went wrong. Please try to download the file from the GDrive folder, or contact the author with the full output including the following error:\n",
-                    e,
-                )
 
     test_transform = transforms.Compose(
         [
@@ -127,6 +106,7 @@ if __name__ == '__main__':
             transforms.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784]),
         ]
     )
+    
     # Loading the training dataset. We need to split it into a training and validation part
     # We need to do a little trick because the validation set should not use the augmentation.
     train_dataset = CIFAR10(root=DATASET_PATH, train=True, transform=train_transform, download=True)
@@ -171,17 +151,17 @@ if __name__ == '__main__':
 
     model, results = train_model(
         model_kwargs={
-            "embed_dim": 256,
-            "hidden_dim": 512,
-            "num_heads": 8,
-            "num_layers": 6,
-            "patch_size": 4,
-            "num_channels": 3,
-            "num_patches": 64,
-            "num_classes": 10,
-            "dropout": 0.2,
+            "embed_dim": opt.embed_dim,
+            "hidden_dim": opt.hidden_dim,
+            "num_heads": opt.num_heads,
+            "num_layers": opt.num_layers,
+            "patch_size": opt.patch_size,
+            "num_channels": opt.num_channels,
+            "num_patches": opt.num_patches,
+            "num_classes": opt.num_classes,
+            "dropout": opt.dropout,
         },
-        lr=3e-4,
+        lr=opt.lr,
     )
     print("ViT results", results)
 
