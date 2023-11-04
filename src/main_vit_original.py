@@ -71,9 +71,11 @@ if __name__ == '__main__':
     opt = parse_opts()
     print("Command-line options:")
     print(opt)
+
+    # create result directory
+    if not os.path.exists(opt.result_path):
+        os.mkdir(opt.result_path)
     
-    plt.set_cmap("cividis")
-    matplotlib.rcParams["lines.linewidth"] = 2.0
     sns.reset_orig()
 
     # Path to the folder where the datasets are/should be downloaded (e.g. CIFAR10)
@@ -130,11 +132,15 @@ if __name__ == '__main__':
     img_grid = torchvision.utils.make_grid(CIFAR_images, nrow=4, normalize=True, pad_value=0.9)
     img_grid = img_grid.permute(1, 2, 0)
 
+    plt.set_cmap("cividis")
+    matplotlib.rcParams["lines.linewidth"] = 2.0
+    
     plt.figure(figsize=(8, 8))
     plt.title("Image examples of the CIFAR10 dataset")
     plt.imshow(img_grid)
     plt.axis("off")
     plt.show()
+    plt.savefig(opt.result_path+"/image_example.png")
     plt.close()
 
     img_patches = img_to_patch(CIFAR_images, patch_size=4, flatten_channels=False)
@@ -147,6 +153,7 @@ if __name__ == '__main__':
         ax[i].imshow(img_grid)
         ax[i].axis("off")
     plt.show()
+    plt.savefig(opt.result_path+"/patches_example.png")
     plt.close()
 
     model, results = train_model(

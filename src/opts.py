@@ -8,6 +8,11 @@ def parse_opts():
         default='../data',
         help='dataset path')
     parser.add_argument(
+        '--result_path',
+        type=str,
+        default='../run/',
+        help='result path')
+    parser.add_argument(
         '--checkpoint_path',
         type=str,
         default='../run/saved_models/VisionTransformers/',
